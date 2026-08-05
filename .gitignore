@@ -1,21 +1,3 @@
-<<<<<<< HEAD
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-=======
->>>>>>> 15ed877b3d2fa9b4f1797a01ee91b90ea069ce1a
 # Gradle files
 .gradle/
 build/
@@ -25,6 +7,7 @@ local.properties
 
 # Log/OS Files
 *.log
+.DS_Store
 
 # Android Studio generated files and folders
 captures/
@@ -37,6 +20,12 @@ output-metadata.json
 # IntelliJ
 *.iml
 .idea/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
@@ -49,8 +38,4 @@ render.experimental.xml
 google-services.json
 
 # Android Profiling
-<<<<<<< HEAD
 *.hprof
-=======
-*.hprof
->>>>>>> 15ed877b3d2fa9b4f1797a01ee91b90ea069ce1a
