@@ -1,0 +1,625 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1d289faf-bba7-40b0-8bc2-3577c785802b",
+              "leftValue": "={{ $json.headers[\"x-auth-token\"] }}",
+              "rightValue": "qwe123qwe123",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3920,
+        5744
+      ],
+      "name": "Check Password1",
+      "id": "7442c6fb-0683-466e-b011-90661f3ade1c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "11a75635-e571-4ddd-8090-b72d14c7362c",
+              "leftValue": "={{ $json.has_media }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3200,
+        5632
+      ],
+      "id": "9b4d94a5-fed8-43fb-8b6a-e026e6598f1a",
+      "name": "Has Media?1"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.end_time || $now.toFormat('yyyyMMdd_HHmmss') }}_call_recording.{{ $binary.media_file.fileExtension || 'bin' }}",
+        "dataPropertyName": "media_file",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2960,
+        5504
+      ],
+      "id": "8ac55e71-4169-45ef-a50e-d211c59eb9c4",
+      "name": "Write Media File1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-logs",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "media_file"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -4160,
+        5744
+      ],
+      "name": "Webhook",
+      "id": "e79b58f4-7bd5-403e-8d30-50bc561b58a5",
+      "webhookId": "5f6046d5-7e3f-4caf-bfa0-b0a0c0e5361f"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst incomingItems = $input.all();\n\nreturn incomingItems.map(currentItem => {\n  const body = currentItem.json?.body || currentItem.json || {};\n  let parsed = {};\n\n  if (typeof body.json_data === 'string' && body.json_data.trim()) {\n    try {\n      parsed = JSON.parse(body.json_data);\n    } catch (error) {\n      parsed = {};\n    }\n  } else if (typeof body.json_data === 'object' && body.json_data !== null) {\n    parsed = body.json_data;\n  }\n\n  const recordData = parsed.record || body.record || body || {};\n  const hasMedia = parsed.has_media !== undefined ? parsed.has_media : (body.has_media !== undefined ? body.has_media : recordData.has_media);\n\n  const row = {\n    device_name: recordData.deviceName || recordData.device_name || '',\n    device_model: recordData.deviceModel || recordData.device_model || '',\n    device_os_version: recordData.osVersion || recordData.device_os_version || '',\n    phone_number: recordData.phoneNumber || recordData.phone_number || '',\n    contact_name: recordData.contactName || recordData.contact_name || '',\n    call_type: recordData.callType || recordData.call_type || '',\n    is_incoming: recordData.isIncoming || recordData.is_incoming || 0,\n    is_outgoing: recordData.isOutgoing || recordData.is_outgoing || 0,\n    is_missed: recordData.isMissed || recordData.is_missed || 0,\n    is_rejected: recordData.isRejected || recordData.is_rejected || 0,\n    is_answered: recordData.isAnswered || recordData.is_answered || 0,\n    start_time: recordData.startTime || recordData.start_time || '',\n    answer_time: recordData.answerTime || recordData.answer_time || '',\n    end_time: recordData.endTime || recordData.end_time || '',\n    total_duration_seconds: recordData.totalDurationSeconds || recordData.total_duration_seconds || 0,\n    ring_duration_seconds: recordData.ringDurationSeconds || recordData.ring_duration_seconds || 0,\n    talk_duration_seconds: recordData.talkDurationSeconds || recordData.talk_duration_seconds || 0,\n    location_coords: recordData.locationCoords || recordData.location_coords || '',\n    sim_slot: recordData.simSlot || recordData.sim_slot || 0,\n    carrier_name: recordData.carrierName || recordData.carrier_name || '',\n    disconnect_cause: recordData.disconnectCause || recordData.disconnect_cause || '',\n    has_media: String(hasMedia || 'false'),\n    received_at: new Date().toISOString(),\n  };\n\n  return { json: row, binary: currentItem.binary };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3680,
+        5632
+      ],
+      "id": "ae395886-65bb-4858-9cf5-2b08772fd209",
+      "name": "Flatten Multipart Body"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "0JN3XwrqThvGsSfU",
+          "mode": "list",
+          "cachedResultName": "tester"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_incoming": "={{ $json.is_incoming }}",
+            "is_outgoing": "={{ $json.is_outgoing }}",
+            "is_missed": "={{ $json.is_missed }}",
+            "is_rejected": "={{ $json.is_rejected }}",
+            "has_media": "={{ $json.has_media }}",
+            "total_duration_seconds": "={{ $json.total_duration_seconds }}",
+            "total_duration": "={{ $json.total_duration_seconds }}",
+            "sim_slot": "={{ $json.sim_slot }}",
+            "ring_duration_seconds": "={{ $json.ring_duration_seconds }}",
+            "device_name": "={{ $json.device_name }}",
+            "device_model": "={{ $json.device_model }}",
+            "phone_number": "={{ $json.phone_number }}",
+            "device_os_version": "={{ $json.device_os_version }}",
+            "contact_name": "={{ $json.contact_name }}",
+            "call_type": "={{ $json.call_type }}",
+            "location_cords": "={{ $json.location_coords }}",
+            "disconnect_cause": "={{ $json.disconnect_cause }}",
+            "start_time": "={{ $json.start_time }}",
+            "end_time": "={{ $json.end_time }}",
+            "answer_time_1": "={{ $json.answer_time }}",
+            "carrier_name": "={{ $json.carrier_name }}",
+            "is_answered": "={{ $json.is_answered }}",
+            "recieved_at": "={{ $json.received_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "device_name",
+              "displayName": "device_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "device_model",
+              "displayName": "device_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "device_os_version",
+              "displayName": "device_os_version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contact_name",
+              "displayName": "contact_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "call_type",
+              "displayName": "call_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_duration_seconds",
+              "displayName": "total_duration_seconds",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_incoming",
+              "displayName": "is_incoming",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_outgoing",
+              "displayName": "is_outgoing",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_missed",
+              "displayName": "is_missed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_rejected",
+              "displayName": "is_rejected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_answered",
+              "displayName": "is_answered",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "start_time",
+              "displayName": "start_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "end_time",
+              "displayName": "end_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_duration",
+              "displayName": "total_duration",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "answer_time",
+              "displayName": "answer_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "location_cords",
+              "displayName": "location_cords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "has_media",
+              "displayName": "has_media",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "recieved_at",
+              "displayName": "recieved_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sim_slot",
+              "displayName": "sim_slot",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ring_duration_seconds",
+              "displayName": "ring_duration_seconds",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "carrier_name",
+              "displayName": "carrier_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "disconnect_cause",
+              "displayName": "disconnect_cause",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "answer_time_1",
+              "displayName": "answer_time_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -3440,
+        5632
+      ],
+      "id": "2bc48ffb-36cc-4a82-8d4a-392721b92b08",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"phone_number\": \"{{ $json.phone_number }}\",\n  \"has_media\": \"{{ $json.has_media }}\",\n  \"message\": \"Log received and saved.\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2720,
+        5632
+      ],
+      "id": "ef50e121-8582-4e37-9783-093b05c7ba7b",
+      "name": "Success Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied. Wrong password.\"\n}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -3680,
+        5872
+      ],
+      "name": "Reject Request",
+      "id": "937602cd-6eaa-4f33-a362-8f0bd58c4a45"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "binaryPropertyName": "media_file1",
+        "options": {}
+      },
+      "id": "89ff6824-4ad7-4786-bb7e-ff8f5ebf4d99",
+      "name": "Extract JSON Metadata",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -3504,
+        6288
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Pull the execution data array\nconst incomingItems = $input.all();\n\n// 2. Map through every item\nreturn incomingItems.map(currentItem => {\n  // The Extract Node parsed media_file1 and merged it right into the JSON root\n  const body = currentItem.json || {};\n  let parsed = {};\n\n  // Handle any nested stringified JSON if it exists\n  if (typeof body.json_data === 'string' && body.json_data.trim()) {\n    try {\n      parsed = JSON.parse(body.json_data);\n    } catch (error) {\n      parsed = {};\n    }\n  } else if (typeof body.json_data === 'object' && body.json_data !== null) {\n    parsed = body.json_data;\n  } else {\n    parsed = body;\n  }\n\n  // Look for the record keys\n  const recordData = parsed.record || parsed || {};\n  \n  // Check if an audio file (media_file0) actually arrived\n  const incomingBinary = currentItem.binary || {};\n  const hasMediaFile = incomingBinary.media_file0 !== undefined ? 'true' : 'false';\n\n  const row = {\n    device_name: recordData.deviceName || recordData.device_name || '',\n    device_model: recordData.deviceModel || recordData.device_model || '',\n    device_os_version: recordData.osVersion || recordData.device_os_version || '',\n    phone_number: recordData.phoneNumber || recordData.phone_number || '',\n    contact_name: recordData.contactName || recordData.contact_name || '',\n    call_type: recordData.callType || recordData.call_type || '',\n    is_incoming: recordData.isIncoming || recordData.is_incoming || 0,\n    is_outgoing: recordData.isOutgoing || recordData.is_outgoing || 0,\n    is_missed: recordData.isMissed || recordData.is_missed || 0,\n    is_rejected: recordData.isRejected || recordData.is_rejected || 0,\n    is_answered: recordData.isAnswered || recordData.is_answered || 0,\n    start_time: recordData.startTime || recordData.start_time || '',\n    answer_time: recordData.answerTime || recordData.answer_time || '',\n    end_time: recordData.endTime || recordData.end_time || '',\n    total_duration_seconds: recordData.totalDurationSeconds || recordData.total_duration_seconds || 0,\n    ring_duration_seconds: recordData.ringDurationSeconds || recordData.ring_duration_seconds || 0,\n    talk_duration_seconds: recordData.talkDurationSeconds || recordData.talk_duration_seconds || 0,\n    location_coords: recordData.locationCoords || recordData.location_coords || '',\n    sim_slot: recordData.simSlot || recordData.sim_slot || 0,\n    carrier_name: recordData.carrierName || recordData.carrier_name || '',\n    disconnect_cause: recordData.disconnectCause || recordData.disconnect_cause || '',\n    has_media: hasMediaFile,\n    received_at: new Date().toISOString(),\n  };\n\n  // Move the audio file to 'media_file' so the next node can write it to disk\n  const outputBinary = {};\n  if (incomingBinary.media_file0) {\n    outputBinary.media_file = incomingBinary.media_file0;\n  }\n\n  return { json: row, binary: outputBinary };\n});"
+      },
+      "id": "070445d2-1512-4f81-b7be-318a0e9245bf",
+      "name": "Map Data & Rename Audio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3296,
+        6288
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/recordings/{{ $json.end_time || $now.toFormat('yyyyMMdd_HHmmss') }}_call_recording.{{ $binary.media_file.fileExtension || 'bin' }}",
+        "dataPropertyName": "media_file",
+        "options": {}
+      },
+      "id": "d89fc1f3-14ed-4683-aac4-2feac3157414",
+      "name": "Write Media File",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -3072,
+        6288
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-logs",
+        "options": {}
+      },
+      "id": "db1df1ad-8544-4062-a0b7-38d48b047873",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -3728,
+        6288
+      ],
+      "webhookId": "9638fc18-0972-4989-b57f-ff00743398b9"
+    }
+  ],
+  "connections": {
+    "Check Password1": {
+      "main": [
+        [
+          {
+            "node": "Flatten Multipart Body",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Media?1": {
+      "main": [
+        [
+          {
+            "node": "Write Media File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Media File1": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Password1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten Multipart Body": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "Has Media?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract JSON Metadata": {
+      "main": [
+        [
+          {
+            "node": "Map Data & Rename Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Data & Rename Audio": {
+      "main": [
+        [
+          {
+            "node": "Write Media File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Extract JSON Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "05f8fe60fb083ca6999641e4bebdf8f7b2301d1e2130cb7b3e324873b8bc52d2"
+  }
+}
