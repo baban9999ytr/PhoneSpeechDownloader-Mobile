@@ -1,543 +1,507 @@
 {
-    "nodes":  [
-                  {
-                      "parameters":  {
-                                         "conditions":  {
-                                                            "options":  {
-                                                                            "caseSensitive":  true,
-                                                                            "leftValue":  "",
-                                                                            "typeValidation":  "strict",
-                                                                            "version":  3
-                                                                        },
-                                                            "conditions":  [
-                                                                               {
-                                                                                   "id":  "1d289faf-bba7-40b0-8bc2-3577c785802b",
-                                                                                   "leftValue":  "={{ $json.headers[\"x-auth-token\"] }}",
-                                                                                   "rightValue":  "qwe123qwe123",
-                                                                                   "operator":  {
-                                                                                                    "type":  "string",
-                                                                                                    "operation":  "equals"
-                                                                                                }
-                                                                               }
-                                                                           ],
-                                                            "combinator":  "and"
-                                                        },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.if",
-                      "typeVersion":  2.3,
-                      "position":  [
-                                       -4160,
-                                       4880
-                                   ],
-                      "name":  "Check Password",
-                      "id":  "c9df099a-1bc7-4c91-9feb-7f7981e80e3b"
-                  },
-                  {
-                      "parameters":  {
-                                         "conditions":  {
-                                                            "options":  {
-                                                                            "caseSensitive":  true,
-                                                                            "leftValue":  "",
-                                                                            "typeValidation":  "strict",
-                                                                            "version":  3
-                                                                        },
-                                                            "conditions":  [
-                                                                               {
-                                                                                   "id":  "11a75635-e571-4ddd-8090-b72d14c7362c",
-                                                                                   "leftValue":  "={{ $(\u0027Flatten Multipart Body1\u0027).item.json.has_media }}",
-                                                                                   "rightValue":  "true",
-                                                                                   "operator":  {
-                                                                                                    "type":  "string",
-                                                                                                    "operation":  "equals"
-                                                                                                }
-                                                                               }
-                                                                           ],
-                                                            "combinator":  "and"
-                                                        },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.if",
-                      "typeVersion":  2.3,
-                      "position":  [
-                                       -3440,
-                                       4768
-                                   ],
-                      "id":  "5b3a0354-d4ad-498f-8291-d7ac4e8b03ff",
-                      "name":  "Has Media?"
-                  },
-                  {
-                      "parameters":  {
-                                         "operation":  "write",
-                                         "fileName":  "={{ $json.end_time || $now.toFormat(\u0027yyyyMMdd_HHmmss\u0027) }}_call_recording.{{ $binary.media_file.fileExtension || \u0027bin\u0027 }}",
-                                         "dataPropertyName":  "media_file",
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.readWriteFile",
-                      "typeVersion":  1.1,
-                      "position":  [
-                                       -3200,
-                                       4640
-                                   ],
-                      "id":  "2110d199-6cac-4c86-a0ba-39a67d4f36fc",
-                      "name":  "Write Media File"
-                  },
-                  {
-                      "parameters":  {
-                                         "httpMethod":  "POST",
-                                         "path":  "upload-logs",
-                                         "responseMode":  "responseNode",
-                                         "options":  {
-                                                         "binaryPropertyName":  "media_file"
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.webhook",
-                      "typeVersion":  2.1,
-                      "position":  [
-                                       -4400,
-                                       4880
-                                   ],
-                      "name":  "Webhook2",
-                      "id":  "269bd714-e867-47e0-9d16-5e27cb21a3ab",
-                      "webhookId":  "5f6046d5-7e3f-4caf-bfa0-b0a0c0e5361f"
-                  },
-                  {
-                      "parameters":  {
-                                         "jsCode":  "return $input.all().map(item =\u003e {\n  const source = item.json || {};\n  const body = source.body || source;\n  let payload = body;\n\n  if (typeof body.json_data === \u0027string\u0027 \u0026\u0026 body.json_data.trim()) {\n    try {\n      payload = JSON.parse(body.json_data);\n    } catch (error) {\n      payload = body;\n    }\n  }\n\n  const record = payload.record || payload;\n  const hasMedia = payload.has_media === true || payload.has_media === \u0027true\u0027 || body.has_media === true || body.has_media === \u0027true\u0027;\n\n  const row = {\n    device_name: record.deviceName || record.device_name || \u0027\u0027,\n    device_model: record.deviceModel || record.device_model || \u0027\u0027,\n    device_os_version: record.osVersion || record.device_os_version || \u0027\u0027,\n    phone_number: record.phoneNumber || record.phone_number || \u0027\u0027,\n    contact_name: record.contactName || record.contact_name || \u0027\u0027,\n    call_type: record.callType || record.call_type || \u0027\u0027,\n    is_incoming: record.isIncoming ?? record.is_incoming ?? 0,\n    is_outgoing: record.isOutgoing ?? record.is_outgoing ?? 0,\n    is_missed: record.isMissed ?? record.is_missed ?? 0,\n    is_rejected: record.isRejected ?? record.is_rejected ?? 0,\n    is_answered: record.isAnswered ?? record.is_answered ?? 0,\n    start_time: record.startTime || record.start_time || \u0027\u0027,\n    answer_time: record.answerTime || record.answer_time || \u0027\u0027,\n    end_time: record.endTime || record.end_time || \u0027\u0027,\n    total_duration_seconds: record.totalDurationSeconds ?? record.total_duration_seconds ?? 0,\n    ring_duration_seconds: record.ringDurationSeconds ?? record.ring_duration_seconds ?? 0,\n    talk_duration_seconds: record.talkDurationSeconds ?? record.talk_duration_seconds ?? 0,\n    location_coords: record.locationCoords || record.location_coords || \u0027\u0027,\n    sim_slot: record.simSlot ?? record.sim_slot ?? 0,\n    carrier_name: record.carrierName || record.carrier_name || \u0027\u0027,\n    disconnect_cause: record.disconnectCause || record.disconnect_cause || \u0027\u0027,\n    has_media: String(hasMedia),\n    received_at: new Date().toISOString(),\n  };\n\n  return { json: row, binary: item.binary };\n});"
-                                     },
-                      "type":  "n8n-nodes-base.code",
-                      "typeVersion":  2,
-                      "position":  [
-                                       -3920,
-                                       4768
-                                   ],
-                      "id":  "01e8d473-3e75-4e28-94c7-867467477139",
-                      "name":  "Flatten Multipart Body1"
-                  },
-                  {
-                      "parameters":  {
-                                         "dataTableId":  {
-                                                             "__rl":  true,
-                                                             "value":  "0JN3XwrqThvGsSfU",
-                                                             "mode":  "list",
-                                                             "cachedResultName":  "tester"
-                                                         },
-                                         "columns":  {
-                                                         "mappingMode":  "defineBelow",
-                                                         "value":  {
-                                                                       "is_incoming":  "={{ $json.is_incoming }}",
-                                                                       "is_outgoing":  "={{ $json.is_outgoing }}",
-                                                                       "is_missed":  "={{ $json.is_missed }}",
-                                                                       "is_rejected":  "={{ $json.is_rejected }}",
-                                                                       "is_answered":  "={{ $json.is_answered }}",
-                                                                       "has_media":  "={{ $json.has_media }}",
-                                                                       "total_duration_seconds":  "={{ $json.total_duration_seconds }}",
-                                                                       "total_duration":  "={{ $json.total_duration_seconds }}",
-                                                                       "sim_slot":  "={{ $json.sim_slot }}",
-                                                                       "ring_duration_seconds":  "={{ $json.ring_duration_seconds }}",
-                                                                       "device_name":  "={{ $json.device_name }}",
-                                                                       "device_model":  "={{ $json.device_model }}",
-                                                                       "phone_number":  "={{ $json.phone_number }}",
-                                                                       "device_os_version":  "={{ $json.device_os_version }}",
-                                                                       "contact_name":  "={{ $json.contact_name }}",
-                                                                       "call_type":  "={{ $json.call_type }}",
-                                                                       "location_cords":  "={{ $json.location_coords }}",
-                                                                       "recieved_at":  "={{ $json.received_at }}",
-                                                                       "disconnect_cause":  "={{ $json.disconnect_cause }}",
-                                                                       "carrier_name":  "={{ $json.carrier_name }}",
-                                                                       "start_time":  "={{ $json.start_time }}",
-                                                                       "end_time":  "={{ $json.end_time }}",
-                                                                       "answer_time_1":  "={{ $json.answer_time }}"
-                                                                   },
-                                                         "matchingColumns":  [
-
-                                                                             ],
-                                                         "schema":  [
-                                                                        {
-                                                                            "id":  "device_name",
-                                                                            "displayName":  "device_name",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "device_model",
-                                                                            "displayName":  "device_model",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "device_os_version",
-                                                                            "displayName":  "device_os_version",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "phone_number",
-                                                                            "displayName":  "phone_number",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "contact_name",
-                                                                            "displayName":  "contact_name",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "call_type",
-                                                                            "displayName":  "call_type",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "total_duration_seconds",
-                                                                            "displayName":  "total_duration_seconds",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "number",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "is_incoming",
-                                                                            "displayName":  "is_incoming",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "boolean",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "is_outgoing",
-                                                                            "displayName":  "is_outgoing",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "boolean",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "is_missed",
-                                                                            "displayName":  "is_missed",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "boolean",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "is_rejected",
-                                                                            "displayName":  "is_rejected",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "boolean",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "is_answered",
-                                                                            "displayName":  "is_answered",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "boolean",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "start_time",
-                                                                            "displayName":  "start_time",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "end_time",
-                                                                            "displayName":  "end_time",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "total_duration",
-                                                                            "displayName":  "total_duration",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "number",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "answer_time",
-                                                                            "displayName":  "answer_time",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "number",
-                                                                            "readOnly":  false,
-                                                                            "removed":  true
-                                                                        },
-                                                                        {
-                                                                            "id":  "location_cords",
-                                                                            "displayName":  "location_cords",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "has_media",
-                                                                            "displayName":  "has_media",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "boolean",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "recieved_at",
-                                                                            "displayName":  "recieved_at",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "sim_slot",
-                                                                            "displayName":  "sim_slot",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "number",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "ring_duration_seconds",
-                                                                            "displayName":  "ring_duration_seconds",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "number",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "carrier_name",
-                                                                            "displayName":  "carrier_name",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "disconnect_cause",
-                                                                            "displayName":  "disconnect_cause",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        },
-                                                                        {
-                                                                            "id":  "answer_time_1",
-                                                                            "displayName":  "answer_time_1",
-                                                                            "required":  false,
-                                                                            "defaultMatch":  false,
-                                                                            "display":  true,
-                                                                            "type":  "string",
-                                                                            "readOnly":  false,
-                                                                            "removed":  false
-                                                                        }
-                                                                    ],
-                                                         "attemptToConvertTypes":  false,
-                                                         "convertFieldsToString":  false
-                                                     },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.dataTable",
-                      "typeVersion":  1.1,
-                      "position":  [
-                                       -3680,
-                                       4768
-                                   ],
-                      "id":  "79f1b504-398a-421a-aeef-33f819308755",
-                      "name":  "Insert row2"
-                  },
-                  {
-                      "parameters":  {
-                                         "respondWith":  "json",
-                                         "responseBody":  "={\n  \"status\": \"success\",\n  \"phone_number\": \"{{ $json.phone_number }}\",\n  \"has_media\": \"{{ $json.has_media }}\",\n  \"message\": \"Log received and saved.\"\n}",
-                                         "options":  {
-                                                         "responseCode":  200
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.respondToWebhook",
-                      "typeVersion":  1.1,
-                      "position":  [
-                                       -2960,
-                                       4768
-                                   ],
-                      "id":  "0001cbe9-af02-4893-bb42-a1d3e1d792d2",
-                      "name":  "Success Response1"
-                  },
-                  {
-                      "parameters":  {
-                                         "respondWith":  "json",
-                                         "responseBody":  "{\n  \"error\": \"Access Denied. Wrong password.\"\n}",
-                                         "options":  {
-                                                         "responseCode":  401
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.respondToWebhook",
-                      "typeVersion":  1.1,
-                      "position":  [
-                                       -3920,
-                                       5008
-                                   ],
-                      "name":  "Reject Request1",
-                      "id":  "7d81685c-1ddd-4cb0-87c8-a1282de525cf"
-                  }
-              ],
-    "connections":  {
-                        "Check Password":  {
-                                               "main":  [
-                                                            [
-                                                                {
-                                                                    "node":  "Flatten Multipart Body1",
-                                                                    "type":  "main",
-                                                                    "index":  0
-                                                                }
-                                                            ],
-                                                            [
-                                                                {
-                                                                    "node":  "Reject Request1",
-                                                                    "type":  "main",
-                                                                    "index":  0
-                                                                }
-                                                            ]
-                                                        ]
-                                           },
-                        "Has Media?":  {
-                                           "main":  [
-                                                        [
-                                                            {
-                                                                "node":  "Write Media File",
-                                                                "type":  "main",
-                                                                "index":  0
-                                                            }
-                                                        ],
-                                                        [
-                                                            {
-                                                                "node":  "Success Response1",
-                                                                "type":  "main",
-                                                                "index":  0
-                                                            }
-                                                        ]
-                                                    ]
-                                       },
-                        "Write Media File":  {
-                                                 "main":  [
-                                                              [
-                                                                  {
-                                                                      "node":  "Success Response1",
-                                                                      "type":  "main",
-                                                                      "index":  0
-                                                                  }
-                                                              ]
-                                                          ]
-                                             },
-                        "Webhook2":  {
-                                         "main":  [
-                                                      [
-                                                          {
-                                                              "node":  "Check Password",
-                                                              "type":  "main",
-                                                              "index":  0
-                                                          }
-                                                      ]
-                                                  ]
-                                     },
-                        "Flatten Multipart Body1":  {
-                                                        "main":  [
-                                                                     [
-                                                                         {
-                                                                             "node":  "Insert row2",
-                                                                             "type":  "main",
-                                                                             "index":  0
-                                                                         }
-                                                                     ]
-                                                                 ]
-                                                    },
-                        "Insert row2":  {
-                                            "main":  [
-                                                         [
-                                                             {
-                                                                 "node":  "Has Media?",
-                                                                 "type":  "main",
-                                                                 "index":  0
-                                                             }
-                                                         ]
-                                                     ]
-                                        }
-                    },
-    "pinData":  {
-
-                },
-    "meta":  {
-                 "templateCredsSetupCompleted":  true,
-                 "instanceId":  "05f8fe60fb083ca6999641e4bebdf8f7b2301d1e2130cb7b3e324873b8bc52d2"
-             }
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1d289faf-bba7-40b0-8bc2-3577c785802b",
+              "leftValue": "={{ $json.headers[\"x-auth-token\"] }}",
+              "rightValue": "qwe123qwe123",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [-4160, 4880],
+      "name": "Check Password",
+      "id": "c9df099a-1bc7-4c91-9feb-7f7981e80e3b"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "11a75635-e571-4ddd-8090-b72d14c7362c",
+              "leftValue": "={{ $(\u0027Flatten Multipart Body1\u0027).item.json.has_media }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [-3440, 4768],
+      "id": "5b3a0354-d4ad-498f-8291-d7ac4e8b03ff",
+      "name": "Has Media?"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.end_time || $now.toFormat(\u0027yyyyMMdd_HHmmss\u0027) }}_call_recording.{{ $binary.media_file.fileExtension || \u0027bin\u0027 }}",
+        "dataPropertyName": "media_file",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [-3200, 4640],
+      "id": "2110d199-6cac-4c86-a0ba-39a67d4f36fc",
+      "name": "Write Media File"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-logs",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "media_file"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-4400, 4880],
+      "name": "Webhook2",
+      "id": "269bd714-e867-47e0-9d16-5e27cb21a3ab",
+      "webhookId": "5f6046d5-7e3f-4caf-bfa0-b0a0c0e5361f"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item =\u003e {\n  const source = item.json || {};\n  const body = source.body || source;\n  let payload = body;\n\n  if (typeof body.json_data === \u0027string\u0027 \u0026\u0026 body.json_data.trim()) {\n    try {\n      payload = JSON.parse(body.json_data);\n    } catch (error) {\n      payload = body;\n    }\n  }\n\n  const record = payload.record || payload;\n  const hasMedia = payload.has_media === true || payload.has_media === \u0027true\u0027 || body.has_media === true || body.has_media === \u0027true\u0027;\n\n  const row = {\n    device_name: record.deviceName || record.device_name || \u0027\u0027,\n    device_model: record.deviceModel || record.device_model || \u0027\u0027,\n    device_os_version: record.osVersion || record.device_os_version || \u0027\u0027,\n    phone_number: record.phoneNumber || record.phone_number || \u0027\u0027,\n    contact_name: record.contactName || record.contact_name || \u0027\u0027,\n    call_type: record.callType || record.call_type || \u0027\u0027,\n    is_incoming: record.isIncoming ?? record.is_incoming ?? 0,\n    is_outgoing: record.isOutgoing ?? record.is_outgoing ?? 0,\n    is_missed: record.isMissed ?? record.is_missed ?? 0,\n    is_rejected: record.isRejected ?? record.is_rejected ?? 0,\n    is_answered: record.isAnswered ?? record.is_answered ?? 0,\n    start_time: record.startTime || record.start_time || \u0027\u0027,\n    answer_time: record.answerTime || record.answer_time || \u0027\u0027,\n    end_time: record.endTime || record.end_time || \u0027\u0027,\n    total_duration_seconds: record.totalDurationSeconds ?? record.total_duration_seconds ?? 0,\n    ring_duration_seconds: record.ringDurationSeconds ?? record.ring_duration_seconds ?? 0,\n    talk_duration_seconds: record.talkDurationSeconds ?? record.talk_duration_seconds ?? 0,\n    location_coords: record.locationCoords || record.location_coords || \u0027\u0027,\n    sim_slot: record.simSlot ?? record.sim_slot ?? 0,\n    carrier_name: record.carrierName || record.carrier_name || \u0027\u0027,\n    disconnect_cause: record.disconnectCause || record.disconnect_cause || \u0027\u0027,\n    has_media: String(hasMedia),\n    received_at: new Date().toISOString(),\n  };\n\n  return { json: row, binary: item.binary };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-3920, 4768],
+      "id": "01e8d473-3e75-4e28-94c7-867467477139",
+      "name": "Flatten Multipart Body1"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "0JN3XwrqThvGsSfU",
+          "mode": "list",
+          "cachedResultName": "tester"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_incoming": "={{ $json.is_incoming }}",
+            "is_outgoing": "={{ $json.is_outgoing }}",
+            "is_missed": "={{ $json.is_missed }}",
+            "is_rejected": "={{ $json.is_rejected }}",
+            "is_answered": "={{ $json.is_answered }}",
+            "has_media": "={{ $json.has_media }}",
+            "total_duration_seconds": "={{ $json.total_duration_seconds }}",
+            "total_duration": "={{ $json.total_duration_seconds }}",
+            "sim_slot": "={{ $json.sim_slot }}",
+            "ring_duration_seconds": "={{ $json.ring_duration_seconds }}",
+            "device_name": "={{ $json.device_name }}",
+            "device_model": "={{ $json.device_model }}",
+            "phone_number": "={{ $json.phone_number }}",
+            "device_os_version": "={{ $json.device_os_version }}",
+            "contact_name": "={{ $json.contact_name }}",
+            "call_type": "={{ $json.call_type }}",
+            "location_cords": "={{ $json.location_coords }}",
+            "recieved_at": "={{ $json.received_at }}",
+            "disconnect_cause": "={{ $json.disconnect_cause }}",
+            "carrier_name": "={{ $json.carrier_name }}",
+            "start_time": "={{ $json.start_time }}",
+            "end_time": "={{ $json.end_time }}",
+            "answer_time_1": "={{ $json.answer_time }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "device_name",
+              "displayName": "device_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "device_model",
+              "displayName": "device_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "device_os_version",
+              "displayName": "device_os_version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contact_name",
+              "displayName": "contact_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "call_type",
+              "displayName": "call_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_duration_seconds",
+              "displayName": "total_duration_seconds",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_incoming",
+              "displayName": "is_incoming",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_outgoing",
+              "displayName": "is_outgoing",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_missed",
+              "displayName": "is_missed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_rejected",
+              "displayName": "is_rejected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_answered",
+              "displayName": "is_answered",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "start_time",
+              "displayName": "start_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "end_time",
+              "displayName": "end_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_duration",
+              "displayName": "total_duration",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "answer_time",
+              "displayName": "answer_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "location_cords",
+              "displayName": "location_cords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "has_media",
+              "displayName": "has_media",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "recieved_at",
+              "displayName": "recieved_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sim_slot",
+              "displayName": "sim_slot",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ring_duration_seconds",
+              "displayName": "ring_duration_seconds",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "carrier_name",
+              "displayName": "carrier_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "disconnect_cause",
+              "displayName": "disconnect_cause",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "answer_time_1",
+              "displayName": "answer_time_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [-3680, 4768],
+      "id": "79f1b504-398a-421a-aeef-33f819308755",
+      "name": "Insert row2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"phone_number\": \"{{ $json.phone_number }}\",\n  \"has_media\": \"{{ $json.has_media }}\",\n  \"message\": \"Log received and saved.\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [-2960, 4768],
+      "id": "0001cbe9-af02-4893-bb42-a1d3e1d792d2",
+      "name": "Success Response1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied. Wrong password.\"\n}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [-3920, 5008],
+      "name": "Reject Request1",
+      "id": "7d81685c-1ddd-4cb0-87c8-a1282de525cf"
+    }
+  ],
+  "connections": {
+    "Check Password": {
+      "main": [
+        [
+          {
+            "node": "Flatten Multipart Body1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Media?": {
+      "main": [
+        [
+          {
+            "node": "Write Media File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Success Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Media File": {
+      "main": [
+        [
+          {
+            "node": "Success Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Check Password",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten Multipart Body1": {
+      "main": [
+        [
+          {
+            "node": "Insert row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row2": {
+      "main": [
+        [
+          {
+            "node": "Has Media?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "05f8fe60fb083ca6999641e4bebdf8f7b2301d1e2130cb7b3e324873b8bc52d2"
+  }
 }

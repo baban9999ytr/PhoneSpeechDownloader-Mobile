@@ -27,10 +27,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [
-        -3920,
-        5744
-      ],
+      "position": [-3920, 5744],
       "name": "Check Password1",
       "id": "7442c6fb-0683-466e-b011-90661f3ade1c"
     },
@@ -60,10 +57,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [
-        -3200,
-        5632
-      ],
+      "position": [-3200, 5632],
       "id": "9b4d94a5-fed8-43fb-8b6a-e026e6598f1a",
       "name": "Has Media?1"
     },
@@ -76,10 +70,7 @@
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
-      "position": [
-        -2960,
-        5504
-      ],
+      "position": [-2960, 5504],
       "id": "8ac55e71-4169-45ef-a50e-d211c59eb9c4",
       "name": "Write Media File1"
     },
@@ -94,10 +85,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [
-        -4160,
-        5744
-      ],
+      "position": [-4160, 5744],
       "name": "Webhook",
       "id": "e79b58f4-7bd5-403e-8d30-50bc561b58a5",
       "webhookId": "5f6046d5-7e3f-4caf-bfa0-b0a0c0e5361f"
@@ -108,10 +96,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -3680,
-        5632
-      ],
+      "position": [-3680, 5632],
       "id": "ae395886-65bb-4858-9cf5-2b08772fd209",
       "name": "Flatten Multipart Body"
     },
@@ -400,10 +385,7 @@
       },
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [
-        -3440,
-        5632
-      ],
+      "position": [-3440, 5632],
       "id": "2bc48ffb-36cc-4a82-8d4a-392721b92b08",
       "name": "Insert row"
     },
@@ -417,10 +399,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        -2720,
-        5632
-      ],
+      "position": [-2720, 5632],
       "id": "ef50e121-8582-4e37-9783-093b05c7ba7b",
       "name": "Success Response"
     },
@@ -434,10 +413,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        -3680,
-        5872
-      ],
+      "position": [-3680, 5872],
       "name": "Reject Request",
       "id": "937602cd-6eaa-4f33-a362-8f0bd58c4a45"
     },
@@ -451,10 +427,7 @@
       "name": "Extract JSON Metadata",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [
-        -3504,
-        6288
-      ]
+      "position": [-3504, 6288]
     },
     {
       "parameters": {
@@ -464,10 +437,7 @@
       "name": "Map Data & Rename Audio",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -3296,
-        6288
-      ]
+      "position": [-3296, 6288]
     },
     {
       "parameters": {
@@ -480,10 +450,7 @@
       "name": "Write Media File",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
-      "position": [
-        -3072,
-        6288
-      ]
+      "position": [-3072, 6288]
     },
     {
       "parameters": {
@@ -495,10 +462,7 @@
       "name": "Webhook1",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        -3728,
-        6288
-      ],
+      "position": [-3728, 6288],
       "webhookId": "9638fc18-0972-4989-b57f-ff00743398b9"
     }
   ],
